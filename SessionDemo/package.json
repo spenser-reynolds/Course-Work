@@ -1,0 +1,19 @@
+{
+  "name": "sessiondemo",
+  "version": "1.0.0",
+  "description": "Session Demo",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "Course-Work"
+  },
+  "author": "Spenser Reynolds",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-session": "^1.17.3"
+  }
+}
