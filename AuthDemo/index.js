@@ -5,7 +5,7 @@ const engine = require('ejs-mate');
 const User = require('./models/user');
 const app = express();
 const bcrypt = require('bcrypt');
-const user = require('./models/user');
+const session = require('express-session');
 
 mongoose.connect('mongodb://localhost:27017/authDemo', { 
 })
@@ -20,7 +20,17 @@ app.engine('ejs', engine);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+const sessionconfig = {
+    secret: 'notagoodsecret',
+    resave: false,
+    saveUninitialized: true,
+    cookie:{
+        httpOnly: true,
+    }
+}
+
 app.use(express.urlencoded({ extended: true }));
+app.use(session(sessionconfig));
 
 
 app.get('/', (req, res) => {
@@ -41,6 +51,7 @@ app.post('/register', async (req, res) => {
         password: hash
     })
     await user.save();
+    req.session.user_id = user._id;
     res.redirect('/');
 });
 
@@ -54,17 +65,27 @@ app.post('/login', async (req, res) => {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
     const validPassword = await bcrypt.compare(password, user.password);
-    if (validPassword){
-        res.send('Yay, Welcome back!');
+    if (validPassword) {
+        req.session.user_id = user._id;
+        res.redirect('/secret');
     } else {
-        res.send('Try agian');
+        res.redirect('/login');
     };
 });
 
 
 app.get('/secret', (req, res) => {
-    res.send('THIS IS SECRET! YOU CANNOT SEE ME UNLESS YOU ARE LOGGED IN!');
+    if (!req.session.user_id) {
+        return res.redirect('/login');
+    }
+    res.render('secret');
 });
+
+
+app.post('/logout', async (req, res) => {
+    req.session.user_id = null;
+    res.redirect('/login');
+});  
 
 
 app.listen(3000, () => {
